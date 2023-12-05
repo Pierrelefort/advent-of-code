@@ -25,7 +25,6 @@ fn get_last_number_string(str: String) -> char {
 }
 
 fn trebuchet(str: String) -> u32 {
-    let str: String = String::from(str);
     let number1_char: char = get_first_number_string(str.clone());
     let number2_char: char = get_last_number_string(str.clone());
 
