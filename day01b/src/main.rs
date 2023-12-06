@@ -51,7 +51,6 @@ fn get_last_number_string(str: String) -> char {
     let mut found = false;
     let mut res: char = '0';
     for (i, c) in str.chars().rev().enumerate() {
-        println!("{}", i);
         if c.is_numeric() {
             res = c;
             break;
@@ -72,7 +71,6 @@ fn get_last_number_string(str: String) -> char {
 }
 
 fn trebuchet(str: String) -> u32 {
-    println!("{}", str);
     let number1_char: char = get_first_number_string(str.clone());
     let number2_char: char = get_last_number_string(str.clone());
 
@@ -104,7 +102,6 @@ fn file_to_value(path: String) -> u32 {
     let mut res: u32 = 0;
     for line in lines {
         let curr: u32 = trebuchet(line.to_string());
-        println!("{}", curr);
         res += curr;
     }
 
