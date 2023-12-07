@@ -28,7 +28,7 @@ fn number_in_array(path_file: String) -> u32 {
     for (i, line) in str.enumerate() {
         let width = line.len() + 1;
         for (j, c) in line.chars().enumerate() {
-            if !c.is_alphanumeric() && !(c == '.') {
+            if c.is_ascii_punctuation() && !(c == '.') {
                 let neighbours_index = _neighbours(width, i, j);
                 for neighbour in neighbours_index {
                     if text.chars().nth(neighbour).unwrap_or(' ').is_alphanumeric() {
@@ -45,10 +45,34 @@ fn number_in_array(path_file: String) -> u32 {
         .map(|(i, _)| i)
         .collect();
 
+    // Find adjacent number
+    for next_symbol_index in next_symbol_index_list {
+        let mut i = 1;
+        while next_symbol_index + i < text.len() && text.chars().nth(next_symbol_index + i).unwrap_or(' ').is_alphanumeric() {
+            i += 1;
+        }
+        if !next_symbol_index + i < text.len() {
+            i -= 1;
+        }
+        next_symbol.replace_range(next_symbol_index..next_symbol_index + i, &text[next_symbol_index..next_symbol_index + i]);
+
+        i = 1;
+        while next_symbol_index >= i && text.chars().nth(next_symbol_index - i).unwrap_or(' ').is_alphanumeric() {
+            i += 1;
+        }
+        if !next_symbol_index >= i {
+            i -= 1;
+        }
+        next_symbol.replace_range(next_symbol_index - i..next_symbol_index, &text[next_symbol_index - i..next_symbol_index]);
+    }
+
     println!("Text:\n{}", text);
     println!("Next Symbol:\n{}", next_symbol);
 
-    let res: u32 = 0;
+    // Return sum of numbers
+    let list_numbers = next_symbol.split(|c: char| c == '.' || c == '\n');
+    let mut res: u32 = 0;
+    list_numbers.for_each(|s:&str| res += s.parse::<u32>().unwrap_or(0));
     return res;
 }
 
