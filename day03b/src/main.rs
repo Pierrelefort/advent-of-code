@@ -1,18 +1,37 @@
 use std::fs;
 
-fn _neighbours(width: usize, i: usize, j: usize) -> [usize; 8] {
-    return [
-        (i - 1) * width + j - 1,
-        i * width + j - 1,
-        (i + 1) * width + j - 1,
-        (i - 1) * width + j,
-        (i + 1) * width + j,
-        (i - 1) * width + j + 1,
-        i * width + j + 1,
-        (i + 1) * width + j + 1,
-    ];
+fn _neighbours(text: &String, width: usize, index: &usize) -> String {
+    let index_i = (*index as f32 / width as f32).floor() as usize;
+    let index_j = index % width;
+
+    let mut res: String = String::from("");
+    let min = if index_i > 1 { index_i - 1 } else { 0 };
+    let max = if index_i < text.split("\n").count() { index_i } else { index_i + 1 };
+
+    for i in min..max+1 {
+        let mut j = 1;
+        let (mut left, mut c) = text.char_indices().nth(i * width + index_j - j).unwrap_or((0, '.'));
+        while index_j >= j && c.is_alphanumeric() {
+            (left, c) = text.char_indices().nth(i * width + index_j - j).unwrap_or((0, '.'));
+            j += 1;
+        }
+
+        let mut j = 1;
+        let (mut right, mut c) = text.char_indices().nth(i * width + index_j + j).unwrap_or((text.split('\n').count(), '.'));
+        while index_j + j < width && c.is_alphanumeric() {
+            (right, c) = text.char_indices().nth(i * width + index_j + j).unwrap_or((text.split('\n').count(), '.'));
+            j += 1;
+        }
+
+        let curr = format!("{:.^1}", &text[left..right+1]);
+        res.push_str(curr.as_str());
+        res.push('\n');
+    }
+    println!("Value:\n{}", res);
+    return res;
 }
-fn number_in_array(path_file: String) -> u32 {
+
+fn number_in_array(path_file: String) -> u64 {
     let file_path: String = String::from(path_file);
     let contents = fs::read_to_string(file_path);
     
@@ -22,65 +41,30 @@ fn number_in_array(path_file: String) -> u32 {
         Err(e) => println!("error parsing header: {e:?}"),
     }
 
-    let mut next_symbol = text.replace(|c: char| !c.is_ascii_whitespace(), ".");
-
-    let mut str = text.split("\n");
-    let width = str.next().unwrap().len();
-    let gears_index: Vec<_> = text.char_indices()
+    let line = text.replace(|c: char| c == '\n', "");
+    let width = text.split("\n").next().unwrap().len();
+    let gears_numbers: Vec<_> = line.char_indices()
         .filter(|(_, c)| c == &'*')
-        .map(|(i, _)| (i / width, i % width))
-        .collect();
-
-    for (i, j) in gears_index {
-        let neighbours_index = _neighbours(width, i, j).iter()
-            .map(|i:&usize| text.char_indices().nth(*i).unwrap_or((0, '.')))
-            .filter(|(_, c)| c.is_alphanumeric());
-    }
-
-
-             
-
-    let next_symbol_index_list: Vec<usize> = next_symbol.char_indices()
-        .filter(|(_, c)| c.is_alphanumeric() || c == &'*')
         .map(|(i, _)| i)
+        .map(|i: usize| _neighbours(&line, width, &i))
         .collect();
 
-    println!("Text:\n{}", text);
-    println!("Next Symbol:\n{}", next_symbol);
-
-    // Find adjacent number
-    for next_symbol_index in next_symbol_index_list {
-        let mut i = 1;
-        while next_symbol_index + i < text.len() && text.chars().nth(next_symbol_index + i).unwrap_or(' ').is_alphanumeric() {
-            i += 1;
+    let mut res: u64 = 0;
+    for nb_str in gears_numbers {
+        let removed_dot = nb_str.replace(|c: char| c == '.' || c == '*', " ");
+        let list_numbers: Vec<_> = removed_dot.split_ascii_whitespace().collect();
+        let mut curr: u64 = 1;
+        if list_numbers.len() == 2 {
+            list_numbers.iter().for_each(|s| curr = curr * s.parse::<u64>().unwrap());
+            println!("Curr :\n{}", curr);
+            res += curr;
         }
-        if !next_symbol_index + i < text.len() {
-            i -= 1;
-        }
-        next_symbol.replace_range(next_symbol_index..next_symbol_index + i, &text[next_symbol_index..next_symbol_index + i]);
-
-        i = 1;
-        while next_symbol_index >= i && text.chars().nth(next_symbol_index - i).unwrap_or(' ').is_alphanumeric() {
-            i += 1;
-        }
-        if !next_symbol_index >= i {
-            i -= 1;
-        }
-        next_symbol.replace_range(next_symbol_index - i..next_symbol_index, &text[next_symbol_index - i..next_symbol_index]);
     }
-
-    println!("Text:\n{}", text);
-    println!("Next Symbol:\n{}", next_symbol);
-
-    // Return sum of numbers
-    let list_numbers = next_symbol.split(|c: char| c == '.' || c == '\n');
-    let mut res: u32 = 0;
-    list_numbers.for_each(|s:&str| res += s.parse::<u32>().unwrap_or(0));
     return res;
 }
 
 fn main() {
-    let test_value = number_in_array(String::from("test.txt"));
+    let test_value: u64 = number_in_array(String::from("test.txt"));
     println!("Test value: {}", test_value);
     assert!(test_value == 467835);
 
