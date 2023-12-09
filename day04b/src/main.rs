@@ -1,4 +1,4 @@
-use std::fs;
+use misc::load_text;
 use std::collections::HashMap;
 
 fn _scratchcards(text: &str, card_number: u32) -> u32{
@@ -49,20 +49,6 @@ fn scratchcards(text: &str) -> u32{
     });
     
     return res;
-}
-
-
-fn load_text(path_file: String) -> String {
-    let file_path: String = String::from(path_file);
-    let contents = fs::read_to_string(file_path);
-    
-    let mut text: String = String::from("");
-    match contents {
-        Ok(v) => text = v,
-        Err(e) => println!("error parsing header: {e:?}"),
-    }
-
-    return text;
 }
 
 fn main() {
